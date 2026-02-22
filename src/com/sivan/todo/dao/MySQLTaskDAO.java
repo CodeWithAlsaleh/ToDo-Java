@@ -12,79 +12,88 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+// We only need transactions if we only execute multiple statements together
 class MySQLTaskDAO implements TaskDAO {
+    private static final String FETCH_ALL_TASKS = "SELECT * FROM Task";
+    private static final String DELETE_TASK = "DELETE FROM Task WHERE Id=?";
+    private static final String FETCH_TASK = "SELECT * FROM Task WHERE Id=?";
+    private static final String INSERT_TASK = "INSERT INTO Task (Description) VALUES(?)";
+    private static final String UPDATE_TASK = "UPDATE Task SET Description=?, Status=? WHERE Id=?";
+
     @Override
     public boolean add(Task task) {
         try (
-                Connection conn = DatabaseConnection.getConnection()
+                Connection conn = DatabaseConnection.getConnection();
+                /*
+                 *  We don't have to put it here cuz once conn is closed
+                 *  it will close any statement got created by it.
+                 * */
+                PreparedStatement stat = conn.prepareStatement(INSERT_TASK)
         ) {
             // Search about this "RETURN_GENERATED_KEYS"
-            PreparedStatement stat = conn.prepareStatement("INSERT INTO Task (Description) VALUES(?)");
             stat.setString(1, task.description());
 
             return stat.executeUpdate() > 0;
         } catch (SQLException e) {
-            return false;
+            throw new RuntimeException("Failed to add task", e);
         }
     }
 
     @Override
     public Task get(Integer id) {
         try (
-                Connection conn = DatabaseConnection.getConnection()
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stat = conn.prepareStatement(FETCH_TASK)
         ) {
-            PreparedStatement stat = conn.prepareStatement("SELECT * FROM Task WHERE Id=?");
             stat.setInt(1, id);
-
             ResultSet res = stat.executeQuery();
 
-            if (res.next())
-                return mapRowToTask(res);
-            else
+            if (!res.next())
                 return null;
+
+            return mapRowToTask(res);
         } catch (SQLException e) {
-            return null;
+            throw new RuntimeException("Failed to fetch task with Id: " + id, e);
         }
     }
 
     @Override
     public boolean update(Task task) {
         try (
-                Connection conn = DatabaseConnection.getConnection()
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stat = conn.prepareStatement(UPDATE_TASK)
         ) {
-            PreparedStatement stat = conn.prepareStatement("UPDATE Task SET Description=?, Status=? WHERE Id=?");
             stat.setString(1, task.description());
             stat.setString(2, task.status().toString());
             stat.setInt(3, task.id());
 
             return stat.executeUpdate() > 0;
         } catch (SQLException e) {
-            return false;
+            throw new RuntimeException("Failed to update task", e);
         }
     }
 
     @Override
     public boolean delete(Integer id) {
         try (
-                Connection conn = DatabaseConnection.getConnection()
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stat = conn.prepareStatement(DELETE_TASK)
         ) {
-            PreparedStatement stat = conn.prepareStatement("DELETE FROM Task WHERE Id=?");
             stat.setInt(1, id);
 
             return stat.executeUpdate() > 0;
         } catch (SQLException e) {
-            return false;
+            throw new RuntimeException("Failed to delete task", e);
         }
     }
 
     @Override
     public List<Task> getAll() {
         try (
-                Connection conn = DatabaseConnection.getConnection()
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stat = conn.prepareStatement(FETCH_ALL_TASKS)
         ) {
             List<Task> tasks = new ArrayList<>();
-            PreparedStatement stat = conn.prepareStatement("SELECT * FROM Task");
-
             ResultSet res = stat.executeQuery();
 
             while (res.next())
@@ -92,7 +101,7 @@ class MySQLTaskDAO implements TaskDAO {
 
             return tasks;
         } catch (SQLException e) {
-            return null;
+            throw new RuntimeException("Failed to get all tasks", e);
         }
     }
 
