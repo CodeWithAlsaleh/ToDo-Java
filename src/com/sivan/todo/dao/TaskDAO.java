@@ -15,6 +15,8 @@ public interface TaskDAO {
 
     List<Task> getAll();
 
+    List<Task> search(String description);
+
     static TaskDAO getDB(String dbName) {
         return switch (dbName.toLowerCase()) {
             case "mysql" -> new MySQLTaskDAO();

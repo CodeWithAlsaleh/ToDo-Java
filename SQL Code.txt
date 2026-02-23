@@ -1,0 +1,17 @@
+CREATE DATABASE ToDo;
+
+USE ToDo;
+
+CREATE TABLE Task(
+	Id INT AUTO_INCREMENT PRIMARY KEY,
+    Description VARCHAR(255) NOT NULL,
+    /*
+		MySQL store the ENUM type as:
+        1 => 'PENDING'
+        2 => 'COMPLETED'
+        
+        NOTE: There is a problem using ENUM u can read about it
+    */
+    Status ENUM('PENDING', 'COMPLETED') DEFAULT 'PENDING',
+    Created_At TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

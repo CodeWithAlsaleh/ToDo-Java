@@ -150,24 +150,14 @@ public class ConsoleUI {
         System.out.print("Enter a keyword to search in task descriptions: ");
         String keyword = scanner.nextLine().toLowerCase();
 
-        List<Task> allTasks = service.getAllTasks();
+        List<Task> tasks = service.searchTask(keyword);
 
-        if (allTasks == null || allTasks.isEmpty()) {
-            System.out.println("Your To-Do list is empty. Nothing to search.");
-            return;
-        }
-
-        // Professional Java: Using Streams to filter the list
-        List<Task> foundTasks = allTasks.stream()
-                .filter(task -> task.description().toLowerCase().contains(keyword))
-                .toList();
-
-        if (foundTasks.isEmpty()) {
+        if (tasks == null || tasks.isEmpty()) {
             System.out.println("No tasks found containing the word: '" + keyword + "'");
             return;
         }
 
-        printResult("Search Results", foundTasks);
+        printResult("Search Results", tasks);
     }
 
     private void printResult(String header, List<Task> tasks) {

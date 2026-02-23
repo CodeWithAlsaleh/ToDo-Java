@@ -4,6 +4,7 @@ import com.sivan.todo.dao.TaskDAO;
 import com.sivan.todo.model.Status;
 import com.sivan.todo.model.Task;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -57,6 +58,13 @@ public class TaskService {
 
     public List<Task> getAllTasks() {
         return db.getAll();
+    }
+
+    public List<Task> searchTask(String description) {
+        if (description == null || description.isBlank())
+            return new ArrayList<>();
+
+        return db.search(description);
     }
 }
 

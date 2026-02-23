@@ -19,6 +19,7 @@ class MySQLTaskDAO implements TaskDAO {
     private static final String FETCH_TASK = "SELECT * FROM Task WHERE Id=?";
     private static final String INSERT_TASK = "INSERT INTO Task (Description) VALUES(?)";
     private static final String UPDATE_TASK = "UPDATE Task SET Description=?, Status=? WHERE Id=?";
+    private static final String SEARCH_TASKS = "SELECT * FROM Task WHERE Description LIKE CONCAT('%', ?, '%')";
 
     @Override
     public boolean add(Task task) {
@@ -102,6 +103,26 @@ class MySQLTaskDAO implements TaskDAO {
             return tasks;
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get all tasks", e);
+        }
+    }
+
+    @Override
+    public List<Task> search(String description) {
+        try (
+                Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stat = conn.prepareStatement(SEARCH_TASKS)
+        ) {
+            List<Task> tasks = new ArrayList<>();
+            stat.setString(1, description);
+
+            ResultSet res = stat.executeQuery();
+
+            while (res.next())
+                tasks.add(mapRowToTask(res));
+
+            return tasks;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to search for the specified description", e);
         }
     }
 
